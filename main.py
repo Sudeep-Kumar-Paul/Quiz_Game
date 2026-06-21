@@ -400,14 +400,18 @@ def login():
             print("AUTH ERROR:", msg)
             if "EMAIL_EXISTS" in msg:
                 error = "That email is already registered. Please log in."
-            elif "INVALID_PASSWORD" in msg or "INVALID_LOGIN_CREDENTIALS" in msg:
-                error = "Incorrect email or password."
-            elif "EMAIL_NOT_FOUND" in msg:
-                error = "No account found. Please register."
             elif "WEAK_PASSWORD" in msg:
                 error = "Password must be at least 6 characters."
+            elif "INVALID_PASSWORD" in msg or "INVALID_LOGIN_CREDENTIALS" in msg or "INVALID_EMAIL" in msg:
+                error = "Incorrect email or password."
+            elif "EMAIL_NOT_FOUND" in msg or "USER_NOT_FOUND" in msg:
+                error = "No account found. Please register."
+            elif "TOO_MANY_ATTEMPTS" in msg:
+                error = "Too many attempts. Please wait a few minutes and try again."
+            elif "MISSING_PASSWORD" in msg:
+                error = "Please enter a password."
             else:
-                error = "Error: " + msg[:200]
+                error = f"Something went wrong: {msg[:300]}"
 
     error_html = f'<div class="alert alert-err">{error}</div>' if error else ""
 
