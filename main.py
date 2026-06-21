@@ -22,21 +22,33 @@ Firestore collections used:
 
 import os, random, time
 from flask import Flask, session, redirect, url_for, request
+from dotenv import load_dotenv
+
+load_dotenv()  # reads values from a local .env file (never committed to git)
 
 # ─────────────────────────────────────────
-#  🔧 FIREBASE CONFIG — fill these in!
+#  🔧 FIREBASE CONFIG — loaded from environment variables.
+#  Copy .env.example to .env and fill in your real values.
 # ─────────────────────────────────────────
-SERVICE_ACCOUNT_PATH = r"C:\Users\Sudeep Kumar Paul\OneDrive\Desktop\vai pro\serviceAccountKey.json"
+SERVICE_ACCOUNT_PATH = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS", "./serviceAccountKey.json")
 
 FIREBASE_WEB_CONFIG = {
-    "apiKey":            "AIzaSyBkJu4Mptm0rkooQ16U9FDTUpTaWrbK3BM",
-    "authDomain":        "quiz-b6b21.firebaseapp.com",
-    "projectId":         "quiz-b6b21",
-    "storageBucket":     "quiz-b6b21.firebasestorage.app",
-    "messagingSenderId": "546026190250",
-    "appId":             "1:546026190250:web:74791e49886f6e2dcfa7d3",
-    "databaseURL":       "",
+    "apiKey":            os.environ.get("FIREBASE_API_KEY"),
+    "authDomain":        os.environ.get("FIREBASE_AUTH_DOMAIN"),
+    "projectId":         os.environ.get("FIREBASE_PROJECT_ID"),
+    "storageBucket":     os.environ.get("FIREBASE_STORAGE_BUCKET"),
+    "messagingSenderId": os.environ.get("FIREBASE_MESSAGING_SENDER_ID"),
+    "appId":             os.environ.get("FIREBASE_APP_ID"),
+    "databaseURL":       os.environ.get("FIREBASE_DATABASE_URL", ""),
 }
+
+_missing = [k for k, v in FIREBASE_WEB_CONFIG.items() if not v and k != "databaseURL"]
+if _missing or not os.path.exists(SERVICE_ACCOUNT_PATH):
+    raise RuntimeError(
+        "Missing Firebase config. Copy .env.example to .env, fill in your "
+        "real Firebase values, and put your serviceAccountKey.json in the "
+        "project root (it is git-ignored, so this is safe locally)."
+    )
 # ─────────────────────────────────────────
 
 import firebase_admin
@@ -53,7 +65,9 @@ pb_auth = pb.auth()
 
 # ─────────────────────────────────────────
 app = Flask(__name__)
-app.secret_key = os.environ.get("FLASK_SECRET", "quizmaster_secret_2024")
+app.secret_key = os.environ.get("FLASK_SECRET")
+if not app.secret_key:
+    raise RuntimeError("Set FLASK_SECRET in your .env file (use a long random string).")
 
 TIME_LIMIT      = 20
 QUESTIONS_COUNT = 10
